@@ -4,11 +4,11 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: messenger  # Убедитесь, что здесь messenger, а не user
+      POSTGRES_DB: messenger 
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d messenger"]  # Добавлен -d messenger
+      test: ["CMD-SHELL", "pg_isready -U user -d messenger"] 
       interval: 5s
       timeout: 5s
       retries: 5
@@ -21,7 +21,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://user:password@db:5432/messenger  # messenger, не user
+      DATABASE_URL: postgresql://user:password@db:5432/messenger
     volumes:
       - ./app:/app/app
       - ./main.py:/app/main.py
