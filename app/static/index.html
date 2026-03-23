@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💬 Messenger | Real-time Chat</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Экран авторизации -->
+        <div id="auth-screen" class="auth-screen">
+            <div class="auth-card">
+                <h1>💬 Messenger</h1>
+                <div class="auth-tabs">
+                    <button class="tab-btn active" onclick="showAuthTab('login')">Вход</button>
+                    <button class="tab-btn" onclick="showAuthTab('register')">Регистрация</button>
+                </div>
+                
+                <!-- Форма входа -->
+                <div id="login-form" class="auth-form active">
+                    <input type="text" id="login-username" placeholder="Имя пользователя">
+                    <input type="password" id="login-password" placeholder="Пароль">
+                    <button onclick="login()" class="btn-primary">Войти</button>
+                </div>
+                
+                <!-- Форма регистрации -->
+                <div id="register-form" class="auth-form">
+                    <input type="text" id="reg-username" placeholder="Имя пользователя">
+                    <input type="password" id="reg-password" placeholder="Пароль">
+                    <input type="password" id="reg-confirm" placeholder="Подтвердите пароль">
+                    <button onclick="register()" class="btn-primary">Зарегистрироваться</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основной чат (скрыт до авторизации) -->
+        <div id="chat-screen" class="chat-screen" style="display: none;">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <h2>💬 Общий чат</h2>
+                    <span id="online-count" class="online-count">0 онлайн</span>
+                </div>
+                <div class="user-info">
+                    <span id="current-user">Пользователь</span>
+                    <button onclick="logout()" class="logout-btn">🚪 Выйти</button>
+                </div>
+            </div>
+            
+            <div class="chat-main">
+                <div class="sidebar">
+                    <div class="sidebar-title">
+                        <h3>👥 В чате</h3>
+                    </div>
+                    <div id="users-list" class="users-list">
+                        <!-- Список онлайн пользователей -->
+                    </div>
+                </div>
+                
+                <div class="chat-area">
+                    <div id="messages" class="messages-area">
+                        <div class="welcome-message">
+                            <p>✨ Добро пожаловать в чат! ✨</p>
+                            <p>Напишите первое сообщение...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="input-area">
+                        <input type="text" id="messageInput" placeholder="Введите сообщение..." autocomplete="off">
+                        <button onclick="sendMessage()" class="send-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                            </svg>
+                            Отправить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>
