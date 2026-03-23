@@ -40,3 +40,6 @@
 - **WebSocket API** - real-time соединение
 - **Адаптивный дизайн** - градиентный фон, современный UI
 
+![alt text](image.png)
+
+![alt text](image-1.png)
