@@ -30,12 +30,28 @@ jobs:
         continue-on-error: true
       
       - name: Build Docker image
-        run: docker build -t messenger:${{ github.sha }} .
+        run: docker build -t messenger .
       
-      - name: Test container
+      - name: Run container
         run: |
-          docker run -d -p 8000:8000 --name messenger-test messenger:${{ github.sha }}
-          sleep 10
-          curl -f http://localhost:8000/health || exit 1
-          docker stop messenger-test
-          docker rm messenger-test
+          docker run -d -p 8000:8000 --name messenger-test messenger
+          echo "Waiting for app to start..."
+      
+      - name: Wait for app to be ready
+        run: |
+          for i in {1..30}; do
+            echo "Attempt $i/30..."
+            if curl -f http://localhost:8000/health 2>/dev/null; then
+              echo "App is ready!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "App failed to start"
+          exit 1
+      
+      - name: Stop and remove container
+        if: always()
+        run: |
+          docker stop messenger-test || true
+          docker rm messenger-test || true
