@@ -10,7 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
-    # Добавляем PostgreSQL как сервис
     services:
       postgres:
         image: postgres:15
@@ -30,49 +29,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install flake8
-      
-      - name: Lint with flake8
-        run: |
-          flake8 app/ --count --max-complexity=10 --statistics
-        continue-on-error: true
-      
-      - name: Wait for PostgreSQL
-        run: |
-          for i in {1..30}; do
-            if pg_isready -h localhost -p 5432 -U user; then
-              echo "PostgreSQL is ready!"
-              exit 0
-            fi
-            echo "Waiting for PostgreSQL... $i/30"
-            sleep 2
-          done
-          echo "PostgreSQL failed to start"
-          exit 1
-      
       - name: Build Docker image
         run: docker build -t messenger .
-        env:
-          DATABASE_URL: postgresql://user:password@localhost:5432/messenger
       
       - name: Run container
         run: |
           docker run -d \
             -p 8000:8000 \
             --name messenger-test \
-            -e DATABASE_URL=postgresql://user:password@host.docker.internal:5432/messenger \
+            --network host \
+            -e DATABASE_URL=postgresql://user:password@localhost:5432/messenger \
             messenger
+      
+      - name: Show container logs
+        run: |
+          echo "=== Container logs ==="
+          docker logs messenger-test
+          echo "=== End of logs ==="
       
       - name: Wait for app to be ready
         run: |
+          sleep 10
           for i in {1..30}; do
             echo "Attempt $i/30..."
             if curl -f http://localhost:8000/health 2>/dev/null; then
@@ -84,11 +61,7 @@ jobs:
           echo "App failed to start"
           exit 1
       
-      - name: Show logs on failure
-        if: failure()
-        run: docker logs messenger-test
-      
-      - name: Stop and remove container
+      - name: Cleanup
         if: always()
         run: |
           docker stop messenger-test || true
