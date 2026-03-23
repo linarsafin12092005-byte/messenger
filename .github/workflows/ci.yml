@@ -10,6 +10,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
+    # Добавляем PostgreSQL как сервис
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: messenger
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -29,13 +45,31 @@ jobs:
           flake8 app/ --count --max-complexity=10 --statistics
         continue-on-error: true
       
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U user; then
+              echo "PostgreSQL is ready!"
+              exit 0
+            fi
+            echo "Waiting for PostgreSQL... $i/30"
+            sleep 2
+          done
+          echo "PostgreSQL failed to start"
+          exit 1
+      
       - name: Build Docker image
         run: docker build -t messenger .
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/messenger
       
       - name: Run container
         run: |
-          docker run -d -p 8000:8000 --name messenger-test messenger
-          echo "Waiting for app to start..."
+          docker run -d \
+            -p 8000:8000 \
+            --name messenger-test \
+            -e DATABASE_URL=postgresql://user:password@host.docker.internal:5432/messenger \
+            messenger
       
       - name: Wait for app to be ready
         run: |
@@ -49,6 +83,10 @@ jobs:
           done
           echo "App failed to start"
           exit 1
+      
+      - name: Show logs on failure
+        if: failure()
+        run: docker logs messenger-test
       
       - name: Stop and remove container
         if: always()
