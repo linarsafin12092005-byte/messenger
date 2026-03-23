@@ -27,40 +27,37 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4  # обновим до v4, чтобы избежать предупреждения Node 20
+
       - name: Build Docker image
         run: docker build -t messenger .
-      
+
       - name: Run container
         run: |
           docker run -d \
-            -p 8000:8000 \
             --name messenger-test \
-            --network host \
+            -p 8000:8000 \
             -e DATABASE_URL=postgresql://user:password@localhost:5432/messenger \
-            messenger
-      
-      - name: Show container logs
-        run: |
-          echo "=== Container logs ==="
-          docker logs messenger-test
-          echo "=== End of logs ==="
-      
+            messenger \
+            uvicorn main:app --host 0.0.0.0 --port 8000
+
       - name: Wait for app to be ready
         run: |
-          sleep 10
           for i in {1..30}; do
             echo "Attempt $i/30..."
             if curl -f http://localhost:8000/health 2>/dev/null; then
-              echo "App is ready!"
+              echo "✅ App is ready!"
               exit 0
             fi
             sleep 2
           done
-          echo "App failed to start"
+          echo "❌ App failed to start"
           exit 1
-      
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker logs messenger-test
+
       - name: Cleanup
         if: always()
         run: |
